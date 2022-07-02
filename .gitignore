@@ -1,0 +1,6 @@
+embeddings
+__pycache__/
+venv/
+.idea
+# Project exclude paths
+/data/
