@@ -1,4 +1,8 @@
-from torch.utils.data import  Dataset
+from torch.utils.data import Dataset
+import numpy as np
+import torch
+
+
 
 class NERDataset(Dataset):
     def __init__(self, file, embeddings_file='./embeddings/glove.6B.50d.txt', embedding_size=50,

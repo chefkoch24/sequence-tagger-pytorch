@@ -1,7 +1,7 @@
 from torch.utils.data import DataLoader
 from model import SimpleSequenceTagger
 from ner_dataset import NERDataset
-
+import numpy as np
 
 
 # TODO: answer theoretical questions
