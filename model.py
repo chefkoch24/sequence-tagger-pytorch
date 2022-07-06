@@ -4,6 +4,7 @@ from torch import nn
 from torch.nn import functional as F
 import numpy as np
 
+
 class SimpleSequenceTagger(nn.Module):
     def __init__(self, input_dim, hidden_dim, num_layers, class_size):
         super(SimpleSequenceTagger, self).__init__()
@@ -20,17 +21,12 @@ class SimpleSequenceTagger(nn.Module):
     def forward(self, sentence):
         output, _ = self.lstm(sentence)
         labels = self.hidden_to_ner(output)
-        scores = F.softmax(labels, dim=1)
-        return scores
+        labels = F.softmax(labels, dim=2)
+        return labels
 
     def train(self, data, learning_rate=0.01):
         optimizer = torch.optim.Adam(self.parameters(), lr=learning_rate)
-        # TODO: remove it before sumbission
-       # n = 0
         for x, y, plain_txt in data:
-            #n += 1
-            #if n > 100:
-             #   break
             outputs = self.forward(x)  # forward pass
             optimizer.zero_grad()  # caluclate the gradient, manually setting to 0
             # obtain the loss function
@@ -43,6 +39,7 @@ class SimpleSequenceTagger(nn.Module):
         # confusion matrix for statistics and calculation of F1 scores
         confusion_matrix = np.zeros((self.class_size, self.class_size))
         word_statistics_success, word_statistics_fail = {}, {}
+        context_statistics = {}
         for x, y, plain_text in data:
             outputs = self.forward(x)  # forward pass
             # map labels back from one hot encodings for the whole sequence
@@ -51,31 +48,51 @@ class SimpleSequenceTagger(nn.Module):
             # save token based predictions in confusion matrix
             for i in range(len(pred_labels)):
                 confusion_matrix[real_labels[i], pred_labels[i]] += 1
+                # TODO: include sentence statistics
                 if real_labels[i] == pred_labels[i]:
-                    word_statistics_success[plain_text[0]] = word_statistics_success.setdefault(plain_text[0], 0) + 1
+                    word_statistics_success[plain_text[i][0]] = word_statistics_success.setdefault(plain_text[i][0],
+                                                                                                   0) + 1
                 else:
-                    word_statistics_fail[plain_text[0]] = word_statistics_fail.setdefault(plain_text[0], 0) + 1
+                    word_statistics_fail[plain_text[i][0]] = word_statistics_fail.setdefault(plain_text[i][0], 0) + 1
+                    context = ""
+                    if i != 0:
+                        context += str(plain_text[i - 1][0] + " " + plain_text[i][0] + " ")
+                    if i != len(pred_labels) - 1:
+                        context += plain_text[i + 1][0]
+                    context_statistics[context] = context_statistics.setdefault(context, 0) + 1
 
         word_statistics_fail = sorted(word_statistics_fail.items(), key=lambda x: x[1], reverse=True)
         word_statistics_success = sorted(word_statistics_success.items(), key=lambda x: x[1], reverse=True)
+        context_statistics = sorted(context_statistics.items(), key=lambda x: x[1], reverse=True)
         f1_scores = self._calculate_f1(confusion_matrix)
-        return {'f1_scores': f1_scores, 'word_statistics': {'success': word_statistics_success, 'fail': word_statistics_fail}, 'confusion_matrix': confusion_matrix}
+        return {'f1_scores': f1_scores,
+                'word_statistics': {'success': word_statistics_success, 'fail': word_statistics_fail},
+                'confusion_matrix': confusion_matrix, 'context_statistics': context_statistics}
 
     def _calculate_f1(self, confusion_matrix):
         classes = len(confusion_matrix)
         curr_class = 0
         precison, recall = [], []
         sum_tp, sum_fn, sum_fp = 0, 0, 0
+        sum_of_all_elements_in_class = 1
+        sum_of_all_classified_elements_class = 1
         for c in confusion_matrix:
             tp = c[curr_class]
             sum_tp += tp
-            sum_of_all_elements_in_class = np.sum(c)
+            sum_of_all_elements_in_class = np.sum(c) # sum of row in confusion matrix
             sum_fn += sum_of_all_elements_in_class
-            r = tp / sum_of_all_elements_in_class  # calculate recall per class that already includes the tp
+            if sum_of_all_elements_in_class > 0:
+                r = tp / sum_of_all_elements_in_class  # calculate recall per class that already includes the tp
+            else:
+                r = 0
             recall.append(r)
-            sum_of_all_classified_elements_class = np.sum(confusion_matrix[:, curr_class])
+            sum_of_all_classified_elements_class = np.sum(confusion_matrix[:, curr_class]) # sum of column in confusion matrix
+            #TODO: print('sum_of_all_classified_elements_class',sum_of_all_classified_elements_class)
             sum_fp += sum_of_all_classified_elements_class
-            p = tp / sum_of_all_classified_elements_class  # calculate precison per class that already includes the tp
+            if sum_of_all_classified_elements_class > 0:
+                p = tp / sum_of_all_classified_elements_class  # calculate precison per class that already includes the tp
+            else:
+                p = 0
             precison.append(p)
             curr_class += 1  # set to next class
         # macro recall

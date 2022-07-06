@@ -3,7 +3,6 @@ import numpy as np
 import torch
 
 
-
 class NERDataset(Dataset):
     def __init__(self, file, embeddings_file='./embeddings/glove.6B.50d.txt', embedding_size=50,
                  mapping_index={'B-LOC': 0, 'B-MISC': 1, 'B-ORG': 2, 'B-PER': 3, 'I-LOC': 4, 'I-MISC': 5, 'I-ORG': 6,
@@ -27,7 +26,7 @@ class NERDataset(Dataset):
                     plain_original = []
             else:
                 sentence.append(splitted[0].lower())
-                plain_original.append(splitted[0])
+                plain_original.append(splitted[0].lower())
                 labels.append(splitted[-1].removesuffix('\n'))
             # embed the data
         embedded_data = []
@@ -39,7 +38,6 @@ class NERDataset(Dataset):
                 [self._generate_embeddings(d[0], self.vocab),
                  self._one_hot_encoding(mapped_labels, len(self.mapping_index)), d[2]])
         self.data = embedded_data
-
 
     def _one_hot_encoding(self, data_labels, class_size):
         targets = torch.zeros(len(data_labels), class_size)
@@ -55,6 +53,7 @@ class NERDataset(Dataset):
             except:
                 # embeddings to zero if word is not in vocab
                 embeddings[i] = torch.zeros(self.embedding_size)
+                #embeddings[i] = torch.rand(self.embedding_size)
 
         return embeddings
 
