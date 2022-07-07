@@ -1,10 +1,11 @@
 1) The results for macro and micro F1-score are different. The macro F1 score is much lower than the micro F1 score.
 After training of 20 epochs I got the following F1 scores on the test data:
-macro-F1=0.5725304003418387, micro-F1=0.913556584472919.
+macro-F1=0.596766794423345, micro-F1=0.9140088295466782.
 The difference in the calculation is that the macro F1 score is the unweighted mean of all F1 scores for every class. 
 The micro F1 score is the global F1 score by the sum over all classes.
-For this task, I would use the macro F1 score. Because the distribution of classes is heavily imbalanced for the provided data. In general most of the tokens in the data are not named entities. By using the  
-macro F1 score, all classes are handled with equal importance in the evaluation.
+For this task, I would use the macro F1 score. Because the distribution of classes is heavily imbalanced for the provided data. 
+In general most of the tokens in the data are not named entities with class 0.
+By using the macro F1 score as the performance metric, all classes are handled with equal importance in the evaluation and it's not enough to learn only the often occurred classes very well. 
 
 2) My model fails most often for tokens that have ambiguities in the classes. 
 As you can see in the data excerpt of the five most often wrong predicted tokens those tokens exist with ambiguous classes in the dataset.
