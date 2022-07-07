@@ -25,26 +25,14 @@ def main():
         print("Iteration:", epoch, "Loss:", loss)
         metrics = seq_tagger.evaluate(dev_dataloader)
         print('DEV-Data','macro', metrics['f1_scores']['macro'], 'micro', metrics['f1_scores']['micro'])
-        #print('DEV-Data', 'wrong_predicted_words', metrics['word_statistics']['fail'])
-        #print('DEV-Data', 'right_predicted_words', metrics['word_statistics']['success'])
-        #print('DEV-Data', 'context_statistics', metrics['context_statistics'] )
-        #confusion_matrix = metrics['confusion_matrix']
-        #scaler = MinMaxScaler()
-        #confusion_matrix = scaler.fit_transform(confusion_matrix)
-        #df_cm = pd.DataFrame(confusion_matrix)
-        # plt.figure(figsize=(10,7))
-        #sn.set(font_scale=1.4)  # for label size
-        #sn.heatmap(df_cm, annot=True, annot_kws={"size": 16})  # font size
-        #plt.show()
 
     # evaluate on test data
     metrics = seq_tagger.evaluate(test_dataloader)
     print('TEST-Data','macro', metrics['f1_scores']['macro'], 'micro', metrics['f1_scores']['micro'])
-    print('TEST-Data', 'wrong_predicted_words', metrics['word_statistics']['fail'])
-    error_word_statistics = metrics['word_statistics']['fail']
-    error_word_statistics = [error_word_statistics[k] for k in filter(lambda x: x >= 8, error_word_statistics)]
-    print('TEST-Data', 'wrong_predicted_words', error_word_statistics)
+    # print further evaluations
+    print('TEST-Data', 'wrong_predicted_words',  metrics['word_statistics']['fail'])
     print('TEST-Data', 'context_statistics', metrics['context_statistics'])
+    print('TEST-Data', 'confusion_matrix', metrics['confusion_matrix'])
 
 
 if __name__ == "__main__":

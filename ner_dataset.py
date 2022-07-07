@@ -11,6 +11,7 @@ class NERDataset(Dataset):
         self.embedding_size = embedding_size
         self.file = file
         self.vocab = self._generate_vocab(embeddings_file)
+        # read data from the provided path
         f = open(self.file)
         labels = []
         sentence = []
@@ -28,7 +29,7 @@ class NERDataset(Dataset):
                 sentence.append(splitted[0].lower())
                 plain_original.append(splitted[0].lower())
                 labels.append(splitted[-1].removesuffix('\n'))
-            # embed the data
+        # generate the embeddings and save them as data
         embedded_data = []
         for d in data:
             mapped_labels = []
@@ -40,6 +41,7 @@ class NERDataset(Dataset):
         self.data = embedded_data
 
     def _one_hot_encoding(self, data_labels, class_size):
+        # map labels to a one hot encoded vector for the whole sentence
         targets = torch.zeros(len(data_labels), class_size)
         for i, label in enumerate(data_labels):
             targets[i, label] = 1
@@ -53,7 +55,6 @@ class NERDataset(Dataset):
             except:
                 # embeddings to zero if word is not in vocab
                 embeddings[i] = torch.zeros(self.embedding_size)
-                #embeddings[i] = torch.rand(self.embedding_size)
 
         return embeddings
 
